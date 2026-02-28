@@ -1,6 +1,5 @@
 /**
  * QRx — Main application logic.
- * Wires up UI for single and batch barcode generation.
  */
 
 const App = (() => {
@@ -9,7 +8,6 @@ const App = (() => {
   let currentMode = 'single';
 
   const EXPORT_SIZES = [256, 512, 1024, 2048];
-
   const $ = (id) => document.getElementById(id);
 
   /* =========================================================================
@@ -23,7 +21,6 @@ const App = (() => {
     Barcodes.GROUPS.forEach(group => {
       const optgroup = document.createElement('optgroup');
       optgroup.label = group.label;
-
       group.formats.forEach(fmtId => {
         const fmt = Barcodes.get(fmtId);
         const option = document.createElement('option');
@@ -32,7 +29,6 @@ const App = (() => {
         if (fmtId === currentFormat) option.selected = true;
         optgroup.appendChild(option);
       });
-
       select.appendChild(optgroup);
     });
   }
@@ -42,24 +38,25 @@ const App = (() => {
     container.innerHTML = '';
 
     const fmt = Barcodes.get(currentFormat);
-    if (!fmt.options.length) return;
+    if (!fmt.options.length) {
+      container.className = '';
+      return;
+    }
+
+    container.className = 'field-sm';
 
     fmt.options.forEach(optDef => {
-      const group = document.createElement('div');
-      group.className = 'gx-input-group';
-
-      const label = document.createElement('label');
-      label.className = 'gx-label';
-      label.textContent = optDef.label;
-      label.htmlFor = `opt-${optDef.id}`;
-      group.appendChild(label);
-
       if (optDef.type === 'select') {
+        const wrapper = document.createElement('div');
+
+        const label = document.createElement('label');
+        label.textContent = optDef.label;
+        label.htmlFor = `opt-${optDef.id}`;
+        wrapper.appendChild(label);
+
         const sel = document.createElement('select');
         sel.className = 'gx-select';
         sel.id = `opt-${optDef.id}`;
-        sel.dataset.optId = optDef.id;
-
         optDef.choices.forEach(ch => {
           const o = document.createElement('option');
           o.value = ch.value;
@@ -67,12 +64,10 @@ const App = (() => {
           if (ch.value === optDef.default) o.selected = true;
           sel.appendChild(o);
         });
-
         sel.addEventListener('change', onInputChange);
-        group.appendChild(sel);
+        wrapper.appendChild(sel);
+        container.appendChild(wrapper);
       }
-
-      container.appendChild(group);
     });
   }
 
@@ -90,6 +85,10 @@ const App = (() => {
      SINGLE MODE
      ========================================================================= */
 
+  function showExport(el, visible) {
+    el.classList.toggle('visible', visible);
+  }
+
   function updateSinglePreview() {
     const fmt = Barcodes.get(currentFormat);
     const text = $('single-input').value.trim();
@@ -104,7 +103,7 @@ const App = (() => {
     if (!text) {
       preview.innerHTML = '';
       placeholder.style.display = '';
-      exportPanel.style.display = 'none';
+      showExport(exportPanel, false);
       return;
     }
 
@@ -112,24 +111,23 @@ const App = (() => {
     if (error) {
       preview.innerHTML = `<div class="qr-error">${error}</div>`;
       placeholder.style.display = 'none';
-      exportPanel.style.display = 'none';
+      showExport(exportPanel, false);
       return;
     }
 
     try {
-      const userOpts = getFormatOptions();
-      const canvas = Renderer.toPreview(fmt, text, userOpts, showText);
+      const canvas = Renderer.toPreview(fmt, text, getFormatOptions(), showText);
       preview.innerHTML = '';
       canvas.style.maxWidth = '100%';
       canvas.style.height = 'auto';
       canvas.style.imageRendering = 'pixelated';
       preview.appendChild(canvas);
       placeholder.style.display = 'none';
-      exportPanel.style.display = '';
+      showExport(exportPanel, true);
     } catch (e) {
       preview.innerHTML = `<div class="qr-error">${e.message}</div>`;
       placeholder.style.display = 'none';
-      exportPanel.style.display = 'none';
+      showExport(exportPanel, false);
     }
   }
 
@@ -152,40 +150,28 @@ const App = (() => {
     const fmt = Barcodes.get(currentFormat);
     const text = $('single-input').value.trim();
     if (!text || fmt.validate(text)) return;
-
     try {
       const svg = Renderer.toSVG(fmt, text, getFormatOptions(), $('show-text').checked);
-      const blob = new Blob([svg], { type: 'image/svg+xml' });
-      downloadBlob(blob, `barcode-${fmt.id}.svg`);
-    } catch (e) {
-      alert('Export failed: ' + e.message);
-    }
+      downloadBlob(new Blob([svg], { type: 'image/svg+xml' }), `barcode-${fmt.id}.svg`);
+    } catch (e) { alert('Export failed: ' + e.message); }
   }
 
   function exportSingleRaster(format, size) {
     const fmt = Barcodes.get(currentFormat);
     const text = $('single-input').value.trim();
     if (!text || fmt.validate(text)) return;
-
     try {
       const canvas = Renderer.toSizedCanvas(fmt, text, size, getFormatOptions(), $('show-text').checked);
-      const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
-      const quality = format === 'jpg' ? 0.95 : undefined;
-      canvas.toBlob(blob => {
-        downloadBlob(blob, `barcode-${fmt.id}-${size}x${size}.${format}`);
-      }, mimeType, quality);
-    } catch (e) {
-      alert('Export failed: ' + e.message);
-    }
+      const mime = format === 'png' ? 'image/png' : 'image/jpeg';
+      canvas.toBlob(blob => downloadBlob(blob, `barcode-${fmt.id}-${size}.${format}`), mime, format === 'jpg' ? 0.95 : undefined);
+    } catch (e) { alert('Export failed: ' + e.message); }
   }
 
   function exportSinglePDF() {
     const fmt = Barcodes.get(currentFormat);
     const text = $('single-input').value.trim();
     if (!text || fmt.validate(text)) return;
-
-    const pdfOpts = getPDFOptions();
-    PDFExport.download([text], fmt, getFormatOptions(), $('show-text').checked, pdfOpts);
+    PDFExport.download([text], fmt, getFormatOptions(), $('show-text').checked, getPDFOptions());
   }
 
   /* =========================================================================
@@ -200,28 +186,26 @@ const App = (() => {
     const fmt = Barcodes.get(currentFormat);
     const values = getBatchValues();
     const showText = $('show-text').checked;
-    const previewGrid = $('batch-preview-grid');
-    const batchPlaceholder = $('batch-placeholder');
+    const grid = $('batch-preview-grid');
+    const placeholder = $('batch-placeholder');
     const batchExport = $('batch-export');
     const batchCount = $('batch-count');
 
     if (!values.length) {
-      previewGrid.innerHTML = '';
-      batchPlaceholder.style.display = '';
-      batchExport.style.display = 'none';
+      grid.innerHTML = '';
+      placeholder.style.display = '';
+      showExport(batchExport, false);
       if (batchCount) batchCount.textContent = '0 items';
       return;
     }
 
-    batchPlaceholder.style.display = 'none';
+    placeholder.style.display = 'none';
     if (batchCount) batchCount.textContent = `${values.length} items`;
 
     const { valid, invalid } = Batch.validateAll(values, fmt);
-    const userOpts = getFormatOptions();
+    const results = Batch.generateAll(valid, fmt, getFormatOptions(), showText);
 
-    previewGrid.innerHTML = '';
-
-    const results = Batch.generateAll(valid, fmt, userOpts, showText);
+    grid.innerHTML = '';
 
     const allItems = [
       ...results.map(r => ({ ...r, type: r.error ? 'error' : 'valid' })),
@@ -236,11 +220,10 @@ const App = (() => {
         card.classList.add('batch-card-error');
         card.innerHTML = `
           <div class="batch-card-preview batch-card-error-content">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            <span class="batch-error-msg">${item.error || 'Generation failed'}</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span class="batch-error-msg">${item.error || 'Failed'}</span>
           </div>
-          <div class="batch-card-label" title="${item.value}">${item.value}</div>
-        `;
+          <div class="batch-card-label" title="${item.value}">${item.value}</div>`;
       } else {
         const imgDiv = document.createElement('div');
         imgDiv.className = 'batch-card-preview';
@@ -249,19 +232,18 @@ const App = (() => {
         item.canvas.style.imageRendering = 'pixelated';
         imgDiv.appendChild(item.canvas);
 
-        const labelDiv = document.createElement('div');
-        labelDiv.className = 'batch-card-label';
-        labelDiv.title = item.value;
-        labelDiv.textContent = item.value;
+        const label = document.createElement('div');
+        label.className = 'batch-card-label';
+        label.title = item.value;
+        label.textContent = item.value;
 
         card.appendChild(imgDiv);
-        card.appendChild(labelDiv);
+        card.appendChild(label);
       }
-
-      previewGrid.appendChild(card);
+      grid.appendChild(card);
     });
 
-    batchExport.style.display = valid.length ? '' : 'none';
+    showExport(batchExport, valid.length > 0);
   }
 
   let batchDebounce = null;
@@ -278,60 +260,34 @@ const App = (() => {
     const fmt = Barcodes.get(currentFormat);
     const values = getBatchValues().filter(v => !fmt.validate(v));
     if (!values.length) return;
-
     const btn = $('batch-pdf-btn');
-    btn.disabled = true;
-    btn.textContent = 'Generating...';
-
-    try {
-      const pdfOpts = getPDFOptions();
-      await PDFExport.download(values, fmt, getFormatOptions(), $('show-text').checked, pdfOpts);
-    } catch (e) {
-      alert('PDF export failed: ' + e.message);
-    }
-
+    btn.disabled = true; btn.textContent = 'Generating...';
+    try { await PDFExport.download(values, fmt, getFormatOptions(), $('show-text').checked, getPDFOptions()); }
+    catch (e) { alert('PDF export failed: ' + e.message); }
     btn.disabled = false;
-    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg> Download PDF`;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg> Download PDF';
   }
 
   async function exportBatchZipPNG() {
     const fmt = Barcodes.get(currentFormat);
     const values = getBatchValues().filter(v => !fmt.validate(v));
     if (!values.length) return;
-
     const btn = $('batch-zip-png-btn');
-    btn.disabled = true;
-    btn.textContent = 'Generating...';
-
-    try {
-      const blob = await Batch.exportZIP(values, fmt, getFormatOptions(), $('show-text').checked, 512);
-      downloadBlob(blob, `barcodes-${fmt.id}-png.zip`);
-    } catch (e) {
-      alert('ZIP export failed: ' + e.message);
-    }
-
-    btn.disabled = false;
-    btn.textContent = 'ZIP (PNG)';
+    btn.disabled = true; btn.textContent = 'Generating...';
+    try { downloadBlob(await Batch.exportZIP(values, fmt, getFormatOptions(), $('show-text').checked, 512), `barcodes-${fmt.id}-png.zip`); }
+    catch (e) { alert('ZIP export failed: ' + e.message); }
+    btn.disabled = false; btn.textContent = 'ZIP (PNG)';
   }
 
   async function exportBatchZipSVG() {
     const fmt = Barcodes.get(currentFormat);
     const values = getBatchValues().filter(v => !fmt.validate(v));
     if (!values.length) return;
-
     const btn = $('batch-zip-svg-btn');
-    btn.disabled = true;
-    btn.textContent = 'Generating...';
-
-    try {
-      const blob = await Batch.exportZipSVG(values, fmt, getFormatOptions(), $('show-text').checked);
-      downloadBlob(blob, `barcodes-${fmt.id}-svg.zip`);
-    } catch (e) {
-      alert('ZIP export failed: ' + e.message);
-    }
-
-    btn.disabled = false;
-    btn.textContent = 'ZIP (SVG)';
+    btn.disabled = true; btn.textContent = 'Generating...';
+    try { downloadBlob(await Batch.exportZipSVG(values, fmt, getFormatOptions(), $('show-text').checked), `barcodes-${fmt.id}-svg.zip`); }
+    catch (e) { alert('ZIP export failed: ' + e.message); }
+    btn.disabled = false; btn.textContent = 'ZIP (SVG)';
   }
 
   /* =========================================================================
@@ -345,87 +301,65 @@ const App = (() => {
       orientation: $('pdf-orientation').value,
       labelWidth: parseFloat($('pdf-custom-w')?.value) || 30,
       labelHeight: parseFloat($('pdf-custom-h')?.value) || 15,
-      gap: 2,
-      margin: 10,
+      gap: 2, margin: 10,
     };
   }
 
   function updatePDFCustomFields() {
     const custom = $('pdf-custom-fields');
-    if ($('pdf-preset').value === 'custom') {
-      custom.style.display = '';
-    } else {
-      custom.style.display = 'none';
-    }
+    custom.style.display = $('pdf-preset').value === 'custom' ? '' : 'none';
+  }
+
+  function setupPDFToggle() {
+    const btn = $('pdf-toggle-btn');
+    const body = $('pdf-body');
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('open');
+      body.classList.toggle('open');
+    });
   }
 
   /* =========================================================================
-     FILE DROP / UPLOAD
+     FILE DROP
      ========================================================================= */
 
   function setupFileDrop() {
-    const dropZone = $('batch-drop');
-    const fileInput = $('batch-file-input');
-    if (!dropZone || !fileInput) return;
+    const drop = $('batch-drop');
+    const input = $('batch-file-input');
+    if (!drop || !input) return;
 
-    dropZone.addEventListener('click', () => fileInput.click());
-
-    dropZone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      dropZone.classList.add('dragover');
+    drop.addEventListener('click', () => input.click());
+    drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('dragover'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('dragover'));
+    drop.addEventListener('drop', async e => {
+      e.preventDefault(); drop.classList.remove('dragover');
+      if (e.dataTransfer.files[0]) await loadFile(e.dataTransfer.files[0]);
     });
-
-    dropZone.addEventListener('dragleave', () => {
-      dropZone.classList.remove('dragover');
-    });
-
-    dropZone.addEventListener('drop', async (e) => {
-      e.preventDefault();
-      dropZone.classList.remove('dragover');
-      const file = e.dataTransfer.files[0];
-      if (file) await loadFile(file);
-    });
-
-    fileInput.addEventListener('change', async () => {
-      if (fileInput.files[0]) await loadFile(fileInput.files[0]);
-      fileInput.value = '';
+    input.addEventListener('change', async () => {
+      if (input.files[0]) await loadFile(input.files[0]);
+      input.value = '';
     });
   }
 
   async function loadFile(file) {
-    if (!file.name.endsWith('.txt') && !file.name.endsWith('.csv') && !file.name.endsWith('.tsv')) {
-      alert('Please upload a .txt, .csv, or .tsv file');
-      return;
-    }
-
+    if (!/\.(txt|csv|tsv)$/.test(file.name)) { alert('Please upload a .txt, .csv, or .tsv file'); return; }
     try {
-      const content = await Batch.readFile(file);
-      $('batch-input').value = content;
+      $('batch-input').value = await Batch.readFile(file);
       debouncedBatchPreview();
-    } catch (e) {
-      alert('Failed to read file: ' + e.message);
-    }
+    } catch (e) { alert('Failed to read file: ' + e.message); }
   }
 
   /* =========================================================================
-     MODE & TAB SWITCHING
+     MODE SWITCHING
      ========================================================================= */
 
   function switchMode(mode) {
     currentMode = mode;
-
-    document.querySelectorAll('.gx-tab').forEach(tab => {
-      tab.classList.toggle('active', tab.dataset.mode === mode);
-    });
-
+    document.querySelectorAll('.mode-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
     $('single-panel').style.display = mode === 'single' ? '' : 'none';
     $('batch-panel').style.display = mode === 'batch' ? '' : 'none';
-
-    if (mode === 'single') {
-      updateSinglePreview();
-    } else {
-      debouncedBatchPreview();
-    }
+    if (mode === 'single') updateSinglePreview();
+    else debouncedBatchPreview();
   }
 
   /* =========================================================================
@@ -433,20 +367,15 @@ const App = (() => {
      ========================================================================= */
 
   function onInputChange() {
-    if (currentMode === 'single') {
-      updateSinglePreview();
-    } else {
-      debouncedBatchPreview();
-    }
+    if (currentMode === 'single') updateSinglePreview();
+    else debouncedBatchPreview();
   }
 
   function onFormatChange() {
     currentFormat = $('format-select').value;
     const fmt = Barcodes.get(currentFormat);
-
     $('single-input').placeholder = Barcodes.getPlaceholder(currentFormat);
     $('show-text').checked = fmt.showTextDefault;
-
     buildFormatSpecificOptions();
     onInputChange();
   }
@@ -458,7 +387,6 @@ const App = (() => {
   function init() {
     buildFormatOptions();
     buildFormatSpecificOptions();
-
     $('single-input').placeholder = Barcodes.getPlaceholder(currentFormat);
     $('show-text').checked = Barcodes.get(currentFormat).showTextDefault;
 
@@ -468,15 +396,12 @@ const App = (() => {
 
     $('export-svg').addEventListener('click', exportSingleSVG);
     $('export-single-pdf').addEventListener('click', exportSinglePDF);
-
-    EXPORT_SIZES.forEach(size => {
-      $(`export-png-${size}`)?.addEventListener('click', () => exportSingleRaster('png', size));
-      $(`export-jpg-${size}`)?.addEventListener('click', () => exportSingleRaster('jpg', size));
+    EXPORT_SIZES.forEach(s => {
+      $(`export-png-${s}`)?.addEventListener('click', () => exportSingleRaster('png', s));
+      $(`export-jpg-${s}`)?.addEventListener('click', () => exportSingleRaster('jpg', s));
     });
 
-    document.querySelectorAll('.gx-tab').forEach(tab => {
-      tab.addEventListener('click', () => switchMode(tab.dataset.mode));
-    });
+    document.querySelectorAll('.mode-tab').forEach(t => t.addEventListener('click', () => switchMode(t.dataset.mode)));
 
     $('batch-input').addEventListener('input', debouncedBatchPreview);
     $('batch-pdf-btn').addEventListener('click', exportBatchPDF);
@@ -485,16 +410,13 @@ const App = (() => {
 
     $('pdf-preset').addEventListener('change', updatePDFCustomFields);
     updatePDFCustomFields();
-
+    setupPDFToggle();
     setupFileDrop();
     switchMode('single');
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
 
   return { switchMode };
 })();
