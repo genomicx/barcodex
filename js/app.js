@@ -50,8 +50,18 @@ const App = (() => {
         const wrapper = document.createElement('div');
 
         const label = document.createElement('label');
-        label.textContent = optDef.label;
         label.htmlFor = `opt-${optDef.id}`;
+        label.textContent = optDef.label;
+        if (optDef.tooltip) {
+          const tip = document.createElement('span');
+          tip.className = 'tooltip-wrap';
+          tip.innerHTML = '<svg class="tooltip-icon" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="7.5" fill="none" stroke="currentColor" stroke-width="1"/><text x="8" y="12" text-anchor="middle" font-size="11" font-weight="600">i</text></svg>';
+          const bubble = document.createElement('span');
+          bubble.className = 'tooltip-bubble';
+          bubble.textContent = optDef.tooltip;
+          tip.appendChild(bubble);
+          label.appendChild(tip);
+        }
         wrapper.appendChild(label);
 
         const sel = document.createElement('select');

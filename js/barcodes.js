@@ -57,6 +57,7 @@ const Barcodes = (() => {
         {
           id: 'eclevel',
           label: 'Error Correction',
+          tooltip: 'Controls how much of the code can be damaged and still scan. Higher levels make the code larger but more resilient to scratches, smudges, or label wear.',
           type: 'select',
           default: 'M',
           choices: [
