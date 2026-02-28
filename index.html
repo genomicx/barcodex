@@ -448,6 +448,52 @@
       line-height: 1.5;
     }
 
+    /* ===================== Format Guide ===================== */
+    .format-guide {
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--gx-border);
+    }
+
+    .format-guide-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+
+    .format-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    .format-table th {
+      text-align: left;
+      font-weight: 600;
+      padding: 0.5rem 0.75rem;
+      border-bottom: 2px solid var(--gx-border);
+      color: var(--gx-text-muted);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .format-table td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid var(--gx-border);
+      color: var(--gx-text-secondary);
+    }
+
+    .format-table td:first-child {
+      font-weight: 500;
+      color: var(--gx-text-primary);
+    }
+
+    .format-table td:nth-child(2) {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+    }
+
     /* ===================== Responsive ===================== */
     @media (max-width: 640px) {
       .gen-row {
@@ -693,6 +739,24 @@
         <h4>Built for the lab</h4>
         <p>Label presets for cryovials, tubes, and slides. Batch generate from LIMS exports and print directly.</p>
       </div>
+    </div>
+
+    <!-- Format Guide -->
+    <div class="format-guide">
+      <h3 class="format-guide-title">Supported formats</h3>
+      <table class="format-table">
+        <thead>
+          <tr><th>Format</th><th>Type</th><th>Best for</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>QR Code</td><td>2D</td><td>URLs, general purpose, phone-scannable</td></tr>
+          <tr><td>Data Matrix</td><td>2D</td><td>Cryovials, tubes, 96-well plates, slides — compact and durable</td></tr>
+          <tr><td>Code 128</td><td>1D</td><td>LIMS sample IDs, equipment asset tags — high density alphanumeric</td></tr>
+          <tr><td>Code 39</td><td>1D</td><td>Legacy LIMS and healthcare systems — widely supported</td></tr>
+          <tr><td>EAN-13</td><td>1D</td><td>Reagent kits, products — standard retail/inventory barcode</td></tr>
+          <tr><td>GS1-128</td><td>1D</td><td>Supply chain — encodes lot numbers, expiry dates, GTINs</td></tr>
+        </tbody>
+      </table>
     </div>
 
   </div>
