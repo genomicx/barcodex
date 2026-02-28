@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QRx — QR Code Generator</title>
-  <meta name="description" content="Generate QR codes from text or URLs. Export as SVG, PNG, or JPG at multiple sizes. Free, private, runs entirely in your browser.">
+  <title>QRx — Barcode & QR Code Generator</title>
+  <meta name="description" content="Generate Data Matrix, QR codes, Code 128, and more for sample tracking, biobanking, and LIMS workflows. Single or batch mode with PDF label export. Free, private, browser-based.">
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -23,32 +23,32 @@
   </script>
 
   <style>
-    /* App-specific styles */
-    .qr-app {
+    /* ===================== App Layout ===================== */
+    .app-layout {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 340px 1fr;
       gap: 2rem;
       align-items: start;
     }
 
-    .qr-input-panel {
+    .sidebar {
       position: sticky;
       top: calc(var(--gx-nav-height) + 2rem);
     }
 
-    #qr-preview {
-      width: 100%;
-      max-width: 360px;
-      margin: 0 auto;
-      aspect-ratio: 1;
+    /* ===================== Mode Tabs ===================== */
+    .mode-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--gx-border);
+      margin-bottom: 1.5rem;
+    }
+
+    /* ===================== Single Preview ===================== */
+    #single-preview {
       display: flex;
       align-items: center;
       justify-content: center;
-    }
-
-    #qr-preview svg {
-      width: 100%;
-      height: 100%;
+      min-height: 120px;
     }
 
     .qr-placeholder {
@@ -58,9 +58,7 @@
       justify-content: center;
       gap: 1rem;
       width: 100%;
-      max-width: 360px;
-      margin: 0 auto;
-      aspect-ratio: 1;
+      min-height: 200px;
       border: 2px dashed var(--gx-border);
       border-radius: var(--gx-radius-lg);
       color: var(--gx-text-muted);
@@ -88,8 +86,13 @@
       font-family: var(--gx-font-mono);
     }
 
+    /* ===================== Export Groups ===================== */
     .export-group {
       margin-bottom: 1rem;
+    }
+
+    .export-group:last-child {
+      margin-bottom: 0;
     }
 
     .export-group-label {
@@ -107,13 +110,184 @@
       gap: 0.5rem;
     }
 
+    /* ===================== Batch ===================== */
+    .batch-preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .batch-card {
+      background: var(--gx-surface);
+      border: 1px solid var(--gx-border);
+      border-radius: var(--gx-radius);
+      overflow: hidden;
+      transition: border-color var(--gx-transition);
+    }
+
+    .batch-card:hover {
+      border-color: var(--gx-accent);
+    }
+
+    .batch-card-preview {
+      padding: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+    }
+
+    [data-theme="dark"] .batch-card-preview {
+      background: #ffffff;
+    }
+
+    .batch-card-label {
+      padding: 0.375rem 0.625rem;
+      font-size: 0.7rem;
+      font-family: var(--gx-font-mono);
+      color: var(--gx-text-muted);
+      border-top: 1px solid var(--gx-border);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .batch-card-error {
+      border-color: var(--gx-error);
+    }
+
+    .batch-card-error-content {
+      flex-direction: column;
+      gap: 0.5rem;
+      color: var(--gx-error);
+      background: rgba(239, 68, 68, 0.05) !important;
+      min-height: 80px;
+    }
+
+    .batch-error-msg {
+      font-size: 0.7rem;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    .batch-count {
+      font-size: 0.75rem;
+      color: var(--gx-text-muted);
+      text-align: right;
+      margin-top: 0.25rem;
+      font-family: var(--gx-font-mono);
+    }
+
+    /* ===================== PDF Options ===================== */
+    .pdf-options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    .pdf-options-grid .gx-input-group {
+      margin-bottom: 0;
+    }
+
+    .pdf-custom-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+
+    /* ===================== Toggle Switch ===================== */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+    }
+
+    .toggle-label {
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--gx-text-bright);
+    }
+
+    .toggle-checkbox {
+      display: none;
+    }
+
+    .toggle-switch-label {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 22px;
+      background: var(--gx-border);
+      border-radius: 11px;
+      cursor: pointer;
+      transition: background var(--gx-transition);
+      flex-shrink: 0;
+    }
+
+    .toggle-switch-label::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: white;
+      transition: transform var(--gx-transition);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+
+    .toggle-checkbox:checked + .toggle-switch-label {
+      background: var(--gx-accent);
+    }
+
+    .toggle-checkbox:checked + .toggle-switch-label::after {
+      transform: translateX(18px);
+    }
+
+    /* ===================== File Drop ===================== */
+    .gx-file-drop {
+      border: 2px dashed var(--gx-border);
+      border-radius: var(--gx-radius-lg);
+      padding: 1.25rem;
+      text-align: center;
+      color: var(--gx-text-muted);
+      font-size: 0.8rem;
+      transition: border-color var(--gx-transition), background var(--gx-transition);
+      cursor: pointer;
+    }
+
+    .gx-file-drop:hover,
+    .gx-file-drop.dragover {
+      border-color: var(--gx-accent);
+      background: var(--gx-accent-dim);
+    }
+
+    .gx-file-drop svg {
+      width: 24px;
+      height: 24px;
+      margin: 0 auto 0.5rem;
+      color: var(--gx-accent);
+    }
+
+    /* ===================== Responsive ===================== */
     @media (max-width: 768px) {
-      .qr-app {
+      .app-layout {
         grid-template-columns: 1fr;
       }
 
-      .qr-input-panel {
+      .sidebar {
         position: static;
+      }
+
+      .pdf-options-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .batch-preview-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
       }
     }
   </style>
@@ -168,10 +342,10 @@
   <header class="gx-hero">
     <div class="gx-hero-badge">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-      QR Code Generator
+      Barcode &amp; QR Code Generator
     </div>
-    <h1>Generate <span class="gx-accent">QR Codes</span> Instantly</h1>
-    <p>Enter text or a URL and export your QR code as SVG, PNG, or JPG at multiple resolutions. Everything runs in your browser — nothing is sent to a server.</p>
+    <h1>Generate <span class="gx-accent">Barcodes</span> for the Lab</h1>
+    <p>Data Matrix, QR codes, Code 128, and more for sample tracking, biobanking, and LIMS workflows. Single or batch mode with print-ready PDF label export. Everything runs in your browser.</p>
   </header>
 
   <div class="gx-divider"><hr></div>
@@ -184,25 +358,25 @@
       </div>
       <div>
         <h3>Fully Private</h3>
-        <p>Runs entirely client-side. Your data never leaves the browser.</p>
+        <p>Runs entirely client-side. Unlike other generators that route through their servers, your data never leaves the browser.</p>
       </div>
     </div>
     <div class="gx-feature-item">
       <div class="gx-feature-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
       </div>
       <div>
-        <h3>Multi-Format Export</h3>
-        <p>Download as SVG, PNG, or JPG in sizes from 256px to 2048px.</p>
+        <h3>6 Barcode Formats</h3>
+        <p>Data Matrix, QR, Code 128, Code 39, EAN-13, GS1-128 for sample tracking and LIMS integration.</p>
       </div>
     </div>
     <div class="gx-feature-item">
       <div class="gx-feature-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
       </div>
       <div>
-        <h3>Live Preview</h3>
-        <p>See your QR code update in real-time as you type.</p>
+        <h3>Batch + PDF Export</h3>
+        <p>Upload sample lists from your LIMS, generate all labels, export as print-ready PDF.</p>
       </div>
     </div>
   </div>
@@ -211,92 +385,200 @@
 
   <!-- Main App Section -->
   <section class="gx-section">
-    <div class="qr-app">
+    <div class="app-layout">
 
-      <!-- Left: Input -->
-      <div class="qr-input-panel">
-        <div class="gx-panel">
-          <div class="gx-panel-header">
-            <h3>Input</h3>
-          </div>
+      <!-- ============ SIDEBAR ============ -->
+      <div class="sidebar">
 
-          <div class="gx-input-group">
-            <label class="gx-label" for="qr-input">Text or URL</label>
-            <textarea id="qr-input" class="gx-textarea" placeholder="Enter text, URL, or any data to encode..." rows="4"></textarea>
-            <div class="char-count" id="char-count">0 characters</div>
-          </div>
-
-          <div class="gx-input-group">
-            <label class="gx-label" for="qr-ecl">Error Correction</label>
-            <select id="qr-ecl" class="gx-select">
-              <option value="L">Low (L) — 7% recovery</option>
-              <option value="M" selected>Medium (M) — 15% recovery</option>
-              <option value="Q">Quartile (Q) — 25% recovery</option>
-              <option value="H">High (H) — 30% recovery</option>
-            </select>
-          </div>
-
-          <div class="gx-alert gx-alert-info gx-mt-4">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-            <span>Higher error correction makes the QR code scannable even when partially damaged, but increases its size.</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Right: Preview + Export -->
-      <div>
+        <!-- Format Selector -->
         <div class="gx-panel gx-mb-6">
           <div class="gx-panel-header">
-            <h3>Preview</h3>
+            <h3>Format</h3>
           </div>
-
-          <div id="qr-placeholder" class="qr-placeholder">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
-            <span>Enter text to generate a QR code</span>
+          <div class="gx-input-group">
+            <select id="format-select" class="gx-select"></select>
           </div>
-          <div id="qr-preview"></div>
+          <div id="format-options"></div>
+          <div class="toggle-row">
+            <label class="toggle-label" for="show-text">Show text below barcode</label>
+            <input type="checkbox" id="show-text" class="toggle-checkbox">
+            <label class="toggle-switch-label" for="show-text"></label>
+          </div>
         </div>
 
-        <div class="gx-panel" id="qr-export" style="display: none;">
+        <!-- PDF Options -->
+        <div class="gx-panel">
           <div class="gx-panel-header">
-            <h3>Export</h3>
+            <h3>PDF Options</h3>
           </div>
-
-          <!-- SVG -->
-          <div class="export-group">
-            <div class="export-group-label">Vector</div>
-            <div class="export-buttons">
-              <button id="export-svg" class="gx-btn gx-btn-primary gx-btn-sm">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                SVG
-              </button>
+          <div class="pdf-options-grid">
+            <div class="gx-input-group">
+              <label class="gx-label" for="pdf-preset">Label Size</label>
+              <select id="pdf-preset" class="gx-select">
+                <option value="cryovial_cap">Cryovial Cap (12mm)</option>
+                <option value="tube_side">Tube Side (25x10mm)</option>
+                <option value="slide_label">Slide Label (25x12mm)</option>
+                <option value="medium_label" selected>Medium (40x20mm)</option>
+                <option value="large_label">Large (60x30mm)</option>
+                <option value="full_page">Full Page</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+            <div class="gx-input-group">
+              <label class="gx-label" for="pdf-page-size">Page Size</label>
+              <select id="pdf-page-size" class="gx-select">
+                <option value="a4" selected>A4</option>
+                <option value="letter">Letter</option>
+              </select>
             </div>
           </div>
-
-          <!-- PNG -->
-          <div class="export-group">
-            <div class="export-group-label">PNG</div>
-            <div class="export-buttons">
-              <button id="export-png-256" class="gx-btn gx-btn-secondary gx-btn-sm">256px</button>
-              <button id="export-png-512" class="gx-btn gx-btn-secondary gx-btn-sm">512px</button>
-              <button id="export-png-1024" class="gx-btn gx-btn-secondary gx-btn-sm">1024px</button>
-              <button id="export-png-2048" class="gx-btn gx-btn-secondary gx-btn-sm">2048px</button>
-            </div>
+          <div class="gx-input-group" style="margin-top: 0.75rem;">
+            <label class="gx-label" for="pdf-orientation">Orientation</label>
+            <select id="pdf-orientation" class="gx-select">
+              <option value="portrait" selected>Portrait</option>
+              <option value="landscape">Landscape</option>
+            </select>
           </div>
-
-          <!-- JPG -->
-          <div class="export-group">
-            <div class="export-group-label">JPG</div>
-            <div class="export-buttons">
-              <button id="export-jpg-256" class="gx-btn gx-btn-secondary gx-btn-sm">256px</button>
-              <button id="export-jpg-512" class="gx-btn gx-btn-secondary gx-btn-sm">512px</button>
-              <button id="export-jpg-1024" class="gx-btn gx-btn-secondary gx-btn-sm">1024px</button>
-              <button id="export-jpg-2048" class="gx-btn gx-btn-secondary gx-btn-sm">2048px</button>
+          <div id="pdf-custom-fields" style="display: none;">
+            <div class="pdf-custom-row">
+              <div class="gx-input-group">
+                <label class="gx-label" for="pdf-custom-w">Width (mm)</label>
+                <input id="pdf-custom-w" class="gx-input" type="number" value="30" min="5" max="200">
+              </div>
+              <div class="gx-input-group">
+                <label class="gx-label" for="pdf-custom-h">Height (mm)</label>
+                <input id="pdf-custom-h" class="gx-input" type="number" value="15" min="5" max="200">
+              </div>
             </div>
           </div>
         </div>
       </div>
 
+      <!-- ============ MAIN CONTENT ============ -->
+      <div>
+
+        <!-- Mode Tabs -->
+        <div class="gx-tabs mode-tabs">
+          <button class="gx-tab active" data-mode="single">Single</button>
+          <button class="gx-tab" data-mode="batch">Batch</button>
+        </div>
+
+        <!-- ======= SINGLE MODE ======= -->
+        <div id="single-panel">
+          <div class="gx-panel gx-mb-6">
+            <div class="gx-panel-header">
+              <h3>Input</h3>
+            </div>
+            <div class="gx-input-group">
+              <textarea id="single-input" class="gx-textarea" rows="3"></textarea>
+              <div class="char-count" id="char-count">0 characters</div>
+            </div>
+          </div>
+
+          <div class="gx-panel gx-mb-6">
+            <div class="gx-panel-header">
+              <h3>Preview</h3>
+            </div>
+            <div id="single-placeholder" class="qr-placeholder">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
+              <span>Enter text to generate a barcode</span>
+            </div>
+            <div id="single-preview"></div>
+          </div>
+
+          <div class="gx-panel" id="single-export" style="display: none;">
+            <div class="gx-panel-header">
+              <h3>Export</h3>
+            </div>
+
+            <div class="export-group">
+              <div class="export-group-label">Vector &amp; PDF</div>
+              <div class="export-buttons">
+                <button id="export-svg" class="gx-btn gx-btn-primary gx-btn-sm">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  SVG
+                </button>
+                <button id="export-single-pdf" class="gx-btn gx-btn-primary gx-btn-sm">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
+                  PDF
+                </button>
+              </div>
+            </div>
+
+            <div class="export-group">
+              <div class="export-group-label">PNG</div>
+              <div class="export-buttons">
+                <button id="export-png-256" class="gx-btn gx-btn-secondary gx-btn-sm">256px</button>
+                <button id="export-png-512" class="gx-btn gx-btn-secondary gx-btn-sm">512px</button>
+                <button id="export-png-1024" class="gx-btn gx-btn-secondary gx-btn-sm">1024px</button>
+                <button id="export-png-2048" class="gx-btn gx-btn-secondary gx-btn-sm">2048px</button>
+              </div>
+            </div>
+
+            <div class="export-group">
+              <div class="export-group-label">JPG</div>
+              <div class="export-buttons">
+                <button id="export-jpg-256" class="gx-btn gx-btn-secondary gx-btn-sm">256px</button>
+                <button id="export-jpg-512" class="gx-btn gx-btn-secondary gx-btn-sm">512px</button>
+                <button id="export-jpg-1024" class="gx-btn gx-btn-secondary gx-btn-sm">1024px</button>
+                <button id="export-jpg-2048" class="gx-btn gx-btn-secondary gx-btn-sm">2048px</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ======= BATCH MODE ======= -->
+        <div id="batch-panel" style="display: none;">
+
+          <div class="gx-panel gx-mb-6">
+            <div class="gx-panel-header">
+              <h3>Input</h3>
+            </div>
+
+            <!-- File Drop -->
+            <div class="gx-file-drop gx-mb-4" id="batch-drop">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <div>Drop a <strong>.txt</strong> file here or click to browse</div>
+              <div class="gx-text-xs gx-text-muted">One value per line</div>
+            </div>
+            <input type="file" id="batch-file-input" accept=".txt,.csv,.tsv" style="display: none;">
+
+            <div class="gx-input-group">
+              <label class="gx-label" for="batch-input">Or paste values (one per line)</label>
+              <textarea id="batch-input" class="gx-textarea" rows="6" placeholder="SAMPLE-001&#10;SAMPLE-002&#10;SAMPLE-003"></textarea>
+              <div class="batch-count" id="batch-count">0 items</div>
+            </div>
+          </div>
+
+          <!-- Batch Preview -->
+          <div class="gx-panel gx-mb-6">
+            <div class="gx-panel-header">
+              <h3>Preview</h3>
+            </div>
+            <div id="batch-placeholder" class="qr-placeholder">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
+              <span>Upload a file or paste values to generate barcodes</span>
+            </div>
+            <div id="batch-preview-grid" class="batch-preview-grid"></div>
+          </div>
+
+          <!-- Batch Export -->
+          <div class="gx-panel" id="batch-export" style="display: none;">
+            <div class="gx-panel-header">
+              <h3>Export All</h3>
+            </div>
+            <div class="export-buttons">
+              <button id="batch-pdf-btn" class="gx-btn gx-btn-primary gx-btn-sm">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
+                Download PDF
+              </button>
+              <button id="batch-zip-png-btn" class="gx-btn gx-btn-secondary gx-btn-sm">ZIP (PNG)</button>
+              <button id="batch-zip-svg-btn" class="gx-btn gx-btn-secondary gx-btn-sm">ZIP (SVG)</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
   </section>
 
@@ -313,7 +595,13 @@
 
   <!-- Scripts -->
   <script src="js/genomicx.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bwip-js@4.5.1/dist/bwip-js-min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="js/barcodes.js"></script>
+  <script src="js/renderer.js"></script>
+  <script src="js/batch.js"></script>
+  <script src="js/pdf-export.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
