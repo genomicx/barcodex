@@ -2,7 +2,7 @@
 
 Browser-based barcode generator for lab sample tracking, biobanking, and LIMS workflows. Generate Data Matrix, QR codes, Code 128, and more — single or batch — with print-ready PDF label export. Everything runs client-side; your data never leaves the browser.
 
-**Live:** [qrx-two.vercel.app](https://qrx-two.vercel.app)
+**Live:** [barcodex.vercel.app](https://barcodex.vercel.app)
 
 ## Features
 
