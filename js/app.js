@@ -4,7 +4,7 @@
 
 const App = (() => {
 
-  let currentFormat = 'datamatrix';
+  let currentFormat = 'qrcode';
   let currentMode = 'single';
 
   const EXPORT_SIZES = [256, 512, 1024, 2048];
@@ -362,6 +362,15 @@ const App = (() => {
     gs1_128: '(01)09501101530003(17)260101',
   };
 
+  const BATCH_PLACEHOLDERS = {
+    datamatrix: 'SAMP-2025-00142\nSAMP-2025-00143\nSAMP-2025-00144',
+    qrcode: 'https://example.com/page-1\nhttps://example.com/page-2\nhttps://example.com/page-3',
+    code128: 'LAB-CRYO-00837\nLAB-CRYO-00838\nLAB-CRYO-00839',
+    code39: 'PLATE A3 R7\nPLATE A3 R8\nPLATE A3 R9',
+    ean13: '5901234123457\n5901234123464\n5901234123471',
+    gs1_128: '(01)09501101530003(17)260101\n(01)09501101530003(17)260201\n(01)09501101530003(17)260301',
+  };
+
   function runDemo() {
     switchMode('single');
     $('single-input').value = DEMO_SAMPLES[currentFormat] || 'SAMPLE-001';
@@ -395,6 +404,7 @@ const App = (() => {
     currentFormat = $('format-select').value;
     const fmt = Barcodes.get(currentFormat);
     $('single-input').placeholder = Barcodes.getPlaceholder(currentFormat);
+    $('batch-input').placeholder = BATCH_PLACEHOLDERS[currentFormat] || 'VALUE-001\nVALUE-002\nVALUE-003';
     $('show-text').checked = fmt.showTextDefault;
     buildFormatSpecificOptions();
     onInputChange();
@@ -408,6 +418,7 @@ const App = (() => {
     buildFormatOptions();
     buildFormatSpecificOptions();
     $('single-input').placeholder = Barcodes.getPlaceholder(currentFormat);
+    $('batch-input').placeholder = BATCH_PLACEHOLDERS[currentFormat] || 'VALUE-001\nVALUE-002\nVALUE-003';
     $('show-text').checked = Barcodes.get(currentFormat).showTextDefault;
 
     $('format-select').addEventListener('change', onFormatChange);
