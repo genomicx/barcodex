@@ -8,6 +8,27 @@ const Renderer = (() => {
   const IS_2D = new Set(['datamatrix', 'qrcode']);
 
   /**
+   * Map cryptic bwip-js errors to human-friendly messages.
+   */
+  function friendlyError(e) {
+    const msg = e.message || String(e);
+
+    if (/GS1aiMissingOpenParen|AIs must start/i.test(msg))
+      return 'GS1-128 values must use parenthesised application identifiers, e.g. (01)09501101530003(17)260101';
+    if (/badLength|too long|too short/i.test(msg))
+      return 'Input length is not valid for this barcode format';
+    if (/badCharacter|not valid/i.test(msg))
+      return 'Input contains characters not supported by this format';
+    if (/checkDigit|checksum/i.test(msg))
+      return 'Check digit is incorrect — verify the number and try again';
+    if (/encode/i.test(msg))
+      return 'Could not encode this input — check the format requirements';
+
+    // Strip the bwipp prefix for anything else
+    return msg.replace(/^bwipp\.\w+#\d+:\s*/i, '');
+  }
+
+  /**
    * Build bwip-js options from format definition and user selections.
    * For 2D codes, includetext is always false (we draw captions ourselves).
    */
@@ -95,7 +116,11 @@ const Renderer = (() => {
     opts.scale = scale;
 
     const canvas = document.createElement('canvas');
-    bwipjs.toCanvas(canvas, opts);
+    try {
+      bwipjs.toCanvas(canvas, opts);
+    } catch (e) {
+      throw new Error(friendlyError(e));
+    }
 
     const want = showText !== null ? showText : formatDef.showTextDefault;
     if (needsCaption(formatDef, want)) {
@@ -112,7 +137,9 @@ const Renderer = (() => {
     if (typeof bwipjs.toSVG === 'function') {
       const opts = buildOptions(formatDef, text, userOpts, showText);
       delete opts.scale;
-      const svg = bwipjs.toSVG(opts);
+      let svg;
+      try { svg = bwipjs.toSVG(opts); }
+      catch (e) { throw new Error(friendlyError(e)); }
 
       const want = showText !== null ? showText : formatDef.showTextDefault;
       if (needsCaption(formatDef, want)) {
