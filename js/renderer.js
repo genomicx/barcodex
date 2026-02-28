@@ -5,26 +5,29 @@
 
 const Renderer = (() => {
 
+  const IS_2D = new Set(['datamatrix', 'qrcode']);
+
   /**
    * Build bwip-js options from format definition and user selections.
+   * For 2D codes, includetext is always false (we draw captions ourselves).
    */
   function buildOptions(formatDef, text, userOpts = {}, showText = null) {
+    const want = showText !== null ? showText : formatDef.showTextDefault;
+    const is2d = IS_2D.has(formatDef.id);
+
     const opts = {
       bcid: formatDef.bwipType,
       text: text,
       scale: 3,
-      includetext: showText !== null ? showText : formatDef.showTextDefault,
+      includetext: is2d ? false : want,
       textxalign: 'center',
     };
 
     for (const optDef of formatDef.options) {
       const val = userOpts[optDef.id] ?? optDef.default;
       if (!val) continue;
-
       switch (optDef.id) {
-        case 'eclevel':
-          opts.eclevel = val;
-          break;
+        case 'eclevel': opts.eclevel = val; break;
         case 'dmsize':
           if (val) {
             const parts = val.split('x');
@@ -32,9 +35,7 @@ const Renderer = (() => {
             opts.rows = parseInt(parts[1]);
           }
           break;
-        case 'barheight':
-          opts.height = parseInt(val);
-          break;
+        case 'barheight': opts.height = parseInt(val); break;
       }
     }
 
@@ -42,8 +43,52 @@ const Renderer = (() => {
   }
 
   /**
+   * Add a text caption below a barcode canvas.
+   * Returns a new canvas with the caption appended.
+   */
+  function addCaption(srcCanvas, text, scale) {
+    const fontSize = Math.max(10, Math.round(scale * 3.5));
+    const padding = Math.round(fontSize * 0.6);
+    const captionH = fontSize + padding * 2;
+
+    const out = document.createElement('canvas');
+    out.width = srcCanvas.width;
+    out.height = srcCanvas.height + captionH;
+    const ctx = out.getContext('2d');
+
+    // White background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, out.width, out.height);
+
+    // Draw barcode
+    ctx.drawImage(srcCanvas, 0, 0);
+
+    // Draw caption
+    ctx.fillStyle = '#0f172a';
+    ctx.font = `500 ${fontSize}px "Inter", "Segoe UI", system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Truncate if too wide
+    let label = text;
+    const maxW = out.width - padding * 2;
+    while (ctx.measureText(label).width > maxW && label.length > 3) {
+      label = label.slice(0, -4) + '...';
+    }
+
+    ctx.fillText(label, out.width / 2, srcCanvas.height + captionH / 2);
+    return out;
+  }
+
+  /**
+   * Should we draw a caption ourselves?
+   */
+  function needsCaption(formatDef, showText) {
+    return IS_2D.has(formatDef.id) && showText;
+  }
+
+  /**
    * Render barcode to a canvas element.
-   * @returns {HTMLCanvasElement}
    */
   function toCanvas(formatDef, text, userOpts = {}, showText = null, scale = 3) {
     const opts = buildOptions(formatDef, text, userOpts, showText);
@@ -51,23 +96,36 @@ const Renderer = (() => {
 
     const canvas = document.createElement('canvas');
     bwipjs.toCanvas(canvas, opts);
+
+    const want = showText !== null ? showText : formatDef.showTextDefault;
+    if (needsCaption(formatDef, want)) {
+      return addCaption(canvas, text, scale);
+    }
+
     return canvas;
   }
 
   /**
    * Render barcode to SVG string.
-   * Uses bwipjs.toSVG if available, otherwise falls back to canvas data URL.
-   * @returns {string}
    */
   function toSVG(formatDef, text, userOpts = {}, showText = null) {
-    // Try native SVG output first
     if (typeof bwipjs.toSVG === 'function') {
       const opts = buildOptions(formatDef, text, userOpts, showText);
       delete opts.scale;
-      return bwipjs.toSVG(opts);
+      const svg = bwipjs.toSVG(opts);
+
+      const want = showText !== null ? showText : formatDef.showTextDefault;
+      if (needsCaption(formatDef, want)) {
+        // For SVG with caption, fall back to canvas-based approach
+        const canvas = toCanvas(formatDef, text, userOpts, showText, 10);
+        const dataUrl = canvas.toDataURL('image/png');
+        return `<svg xmlns="http://www.w3.org/2000/svg" width="${canvas.width}" height="${canvas.height}" viewBox="0 0 ${canvas.width} ${canvas.height}">
+  <image href="${dataUrl}" width="${canvas.width}" height="${canvas.height}" image-rendering="pixelated"/>
+</svg>`;
+      }
+      return svg;
     }
 
-    // Fallback: render to canvas and wrap in SVG with embedded image
     const canvas = toCanvas(formatDef, text, userOpts, showText, 10);
     const dataUrl = canvas.toDataURL('image/png');
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${canvas.width}" height="${canvas.height}" viewBox="0 0 ${canvas.width} ${canvas.height}">
@@ -77,13 +135,10 @@ const Renderer = (() => {
 
   /**
    * Render barcode to canvas at a specific pixel size for raster export.
-   * @returns {HTMLCanvasElement}
    */
   function toSizedCanvas(formatDef, text, targetSize, userOpts = {}, showText = null) {
-    // Render at high scale
     const hiRes = toCanvas(formatDef, text, userOpts, showText, 10);
 
-    // Fit to target size maintaining aspect ratio
     const aspect = hiRes.width / hiRes.height;
     let outW, outH;
     if (aspect >= 1) {
@@ -109,7 +164,6 @@ const Renderer = (() => {
 
   /**
    * Render for preview display.
-   * @returns {HTMLCanvasElement}
    */
   function toPreview(formatDef, text, userOpts = {}, showText = null) {
     return toCanvas(formatDef, text, userOpts, showText, 4);

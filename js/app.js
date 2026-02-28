@@ -350,6 +350,26 @@ const App = (() => {
   }
 
   /* =========================================================================
+     DEMO
+     ========================================================================= */
+
+  const DEMO_SAMPLES = {
+    datamatrix: 'SAMP-2025-00142',
+    qrcode: 'https://genomicx.vercel.app',
+    code128: 'LAB-CRYO-00837',
+    code39: 'PLATE A3 R7',
+    ean13: '590210105300',
+    gs1_128: '(01)09501101530003(17)260101',
+  };
+
+  function runDemo() {
+    switchMode('single');
+    $('single-input').value = DEMO_SAMPLES[currentFormat] || 'SAMPLE-001';
+    updateSinglePreview();
+    $('single-input').focus();
+  }
+
+  /* =========================================================================
      MODE SWITCHING
      ========================================================================= */
 
@@ -412,6 +432,7 @@ const App = (() => {
     updatePDFCustomFields();
     setupPDFToggle();
     setupFileDrop();
+    $('demo-btn')?.addEventListener('click', runDemo);
     switchMode('single');
   }
 
