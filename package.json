@@ -9,7 +9,7 @@
     "check": "npx tsc --noEmit"
   },
   "dependencies": {
-    "@genomicx/ui": "^0.6.0",
+    "@genomicx/ui": "^0.7.1",
     "bwip-js": "^4.5.1",
     "jspdf": "^2.5.2",
     "jszip": "^3.10.1",
