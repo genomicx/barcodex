@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 export function About() {
   return (
     <div className="about-page">
@@ -12,20 +14,8 @@ export function About() {
           </a>{' '}
           library.
         </p>
-        <p>
-          Generate single barcodes with PNG, SVG, and PDF label export, or switch to
-          batch mode to generate hundreds of barcodes from a pasted list or CSV file and
-          download them as a ZIP archive or multi-page PDF.
-        </p>
         <div className="privacy-note">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
           </svg>
           <p>
@@ -33,6 +23,18 @@ export function About() {
             Your sample IDs, URLs, and labels stay private.
           </p>
         </div>
+      </section>
+
+      <section>
+        <h2>Features</h2>
+        <ul>
+          <li>Six barcode formats: Data Matrix, QR Code, Code 128, Code 39, EAN-13, GS1-128</li>
+          <li>Single barcode mode with PNG, SVG, and PDF label export</li>
+          <li>Batch mode — generate hundreds of barcodes from a list or CSV file</li>
+          <li>ZIP archive or multi-page PDF download for batch output</li>
+          <li>Configurable label text, font size, and dimensions</li>
+          <li>All generation in-browser — no upload, no server</li>
+        </ul>
       </section>
 
       <section>
@@ -65,45 +67,51 @@ export function About() {
       </section>
 
       <section>
+        <h2>Technology</h2>
+        <ul>
+          <li><strong>bwip-js</strong> — barcode rendering engine</li>
+          <li><strong>jsPDF</strong> — PDF generation</li>
+          <li><strong>JSZip</strong> — batch ZIP archive creation</li>
+          <li><strong>React + Vite</strong> — frontend framework</li>
+          <li><strong>Cloudflare Pages</strong> — global CDN hosting</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Source Code</h2>
+        <p>
+          Barcodex is open-source software. Contributions and issues welcome on{' '}
+          <a href="https://github.com/genomicx/barcodex" target="_blank" rel="noopener noreferrer">
+            GitHub
+          </a>.
+        </p>
+      </section>
+
+      <section>
         <h2>About the Author</h2>
         <h3>Nabil-Fareed Alikhan</h3>
         <p className="about-role">
-          Senior Bioinformatician, Centre for Genomic Pathogen Surveillance,
-          University of Oxford
+          Senior Bioinformatician, Centre for Genomic Pathogen Surveillance, University of Oxford
         </p>
         <p>
-          Bioinformatics researcher and software developer specialising in microbial
-          genomics. Builder of widely used open-source tools, peer-reviewed researcher,
-          and co-host of the MicroBinfie podcast.
+          Bioinformatics researcher and software developer specialising in microbial genomics.
+          Builder of widely used open-source tools, peer-reviewed researcher, and co-host of
+          the MicroBinfie podcast.
         </p>
         <div className="about-links">
-          <a href="https://www.happykhan.com" target="_blank" rel="noopener noreferrer">
-            happykhan.com
-          </a>
-          <a
-            href="https://orcid.org/0000-0002-1243-0767"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            ORCID: 0000-0002-1243-0767
-          </a>
+          <a href="https://www.happykhan.com" target="_blank" rel="noopener noreferrer">happykhan.com</a>
+          <a href="https://orcid.org/0000-0002-1243-0767" target="_blank" rel="noopener noreferrer">ORCID: 0000-0002-1243-0767</a>
           <a href="mailto:nabil@happykhan.com">nabil@happykhan.com</a>
-          <a
-            href="https://twitter.com/happy_khan"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Twitter: @happy_khan
-          </a>
-          <a
-            href="https://mstdn.science/@happykhan"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Mastodon: @happykhan@mstdn.science
-          </a>
+          <a href="https://twitter.com/happy_khan" target="_blank" rel="noopener noreferrer">@happy_khan</a>
+          <a href="https://mstdn.science/@happykhan" target="_blank" rel="noopener noreferrer">@happykhan@mstdn.science</a>
         </div>
       </section>
+
+      <div style={{ marginTop: '1rem' }}>
+        <Link to="/" style={{ color: 'var(--gx-accent)', textDecoration: 'none', fontWeight: 500 }}>
+          ← Back to Application
+        </Link>
+      </div>
     </div>
   )
 }
