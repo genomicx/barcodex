@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import toast from 'react-hot-toast'
+import { downloadBlob } from '@genomicx/ui'
 import type { FormatDef } from '../barcodex/barcodes'
 import { parseInput, validateAll, generateAll, exportZIP, exportZipSVG } from '../barcodex/batch'
 import type { BatchResult, BatchInvalid } from '../barcodex/batch'
@@ -31,17 +32,6 @@ const DEFAULT_PDF_OPTS: PDFOptions = {
   labelHeight: 15,
   gap: 2,
   margin: 10,
-}
-
-function downloadBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
 }
 
 type AllItem = (BatchResult & { type: 'valid' | 'error' }) | (BatchInvalid & { type: 'invalid' })

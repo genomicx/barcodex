@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import toast from 'react-hot-toast'
+import { downloadBlob } from '@genomicx/ui'
 import type { FormatDef } from '../barcodex/barcodes'
 import { getPlaceholder } from '../barcodex/barcodes'
 import { toSVG, toSizedCanvas } from '../barcodex/renderer'
@@ -24,17 +25,6 @@ const DEFAULT_PDF_OPTS: PDFOptions = {
   labelHeight: 15,
   gap: 2,
   margin: 10,
-}
-
-function downloadBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
 }
 
 export function SingleMode({ formatDef, userOpts, showText }: SingleModeProps) {

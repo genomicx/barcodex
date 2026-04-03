@@ -82,7 +82,7 @@ a:hover { color: var(--gx-accent-hover); }
 .mode-tab.active {
   background: var(--gx-accent);
   border-color: var(--gx-accent);
-  color: #fff;
+  color: var(--gx-text-inverted);
 }
 
 /* ===== Format selector ===== */
