@@ -12,14 +12,24 @@ export default function App() {
 
   return (
     <div className="app">
-      <NavBar appName="BARCODEX" appSubtitle="Barcode & QR code generator" version="0.1.0" />
+      <NavBar appName="BARCODEX" appSubtitle="Barcode & QR code generator" version="0.1.0" icon={
+        <svg className="gx-nav-logo-icon" viewBox="0 0 24 24" fill="none" stroke="var(--gx-accent)" strokeWidth="2">
+          {/* Barcode icon */}
+          <rect x="2" y="4" width="2" height="16" fill="var(--gx-accent)" stroke="none"/>
+          <rect x="6" y="4" width="1" height="16" fill="var(--gx-accent)" stroke="none"/>
+          <rect x="9" y="4" width="3" height="16" fill="var(--gx-accent)" stroke="none"/>
+          <rect x="14" y="4" width="1" height="16" fill="var(--gx-accent)" stroke="none"/>
+          <rect x="17" y="4" width="2" height="16" fill="var(--gx-accent)" stroke="none"/>
+          <rect x="21" y="4" width="1" height="16" fill="var(--gx-accent)" stroke="none"/>
+        </svg>
+      } />
       <main className="app-main">
         <Routes>
           <Route path="/" element={<BarcodeGenerator />} />
           <Route path="/about" element={<About />} />
         </Routes>
       </main>
-      <AppFooter appName="BARCODEX" />
+      <AppFooter appName="BARCODEX" bugReportUrl="https://github.com/genomicx/barcodex/issues" />
     </div>
   )
 }
