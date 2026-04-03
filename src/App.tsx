@@ -29,7 +29,7 @@ export default function App() {
           <Route path="/about" element={<About />} />
         </Routes>
       </main>
-      <AppFooter appName="BARCODEX" bugReportUrl="https://github.com/genomicx/barcodex/issues" />
+      <AppFooter appName="BARCODEX" bugReportEmail="nabil@happykhan.com" bugReportUrl="https://github.com/genomicx/barcodex/issues" />
     </div>
   )
 }
