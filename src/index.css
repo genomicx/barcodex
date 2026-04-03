@@ -1,0 +1,401 @@
+@import '@genomicx/ui/styles/tokens.css';
+@import '@genomicx/ui/styles/components.css';
+@import "tailwindcss";
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+body {
+  font-family: var(--gx-font-sans);
+  background: var(--gx-bg);
+  color: var(--gx-text);
+  line-height: 1.7;
+  font-size: 1rem;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+a { color: var(--gx-accent); text-decoration: none; transition: color var(--gx-transition); }
+a:hover { color: var(--gx-accent-hover); }
+
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-main {
+  flex: 1;
+  padding: 2rem 1.5rem;
+  max-width: 760px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ===== Generator layout ===== */
+.generator-section {
+  margin-bottom: 1.5rem;
+}
+
+.generator-section h2 {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gx-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+/* ===== Mode tabs ===== */
+.mode-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.mode-tab {
+  padding: 0.375rem 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--gx-border);
+  background: transparent;
+  color: var(--gx-text-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--gx-transition), color var(--gx-transition), border-color var(--gx-transition);
+}
+
+.mode-tab:hover {
+  background: var(--gx-surface-hover);
+  color: var(--gx-text);
+}
+
+.mode-tab.active {
+  background: var(--gx-accent);
+  border-color: var(--gx-accent);
+  color: #fff;
+}
+
+/* ===== Format selector ===== */
+.format-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.format-row label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--gx-text-muted);
+  white-space: nowrap;
+}
+
+.format-row select {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* ===== Show text toggle ===== */
+.show-text-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--gx-text-muted);
+  margin-bottom: 1rem;
+}
+
+.show-text-row input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--gx-accent);
+  cursor: pointer;
+}
+
+/* ===== Input area ===== */
+.input-group {
+  position: relative;
+  margin-bottom: 0.5rem;
+}
+
+.input-group input {
+  width: 100%;
+}
+
+.char-count {
+  font-size: 0.75rem;
+  color: var(--gx-text-muted);
+  text-align: right;
+  margin-bottom: 1rem;
+}
+
+/* ===== Preview ===== */
+.preview-area {
+  background: var(--gx-surface);
+  border: 1px solid var(--gx-border);
+  border-radius: 10px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  margin-bottom: 1rem;
+}
+
+.preview-area canvas {
+  max-width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+}
+
+.preview-placeholder {
+  color: var(--gx-text-muted);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.preview-error {
+  color: var(--gx-danger, #ef4444);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+/* ===== Export panel ===== */
+.export-panel {
+  margin-top: 1rem;
+}
+
+.export-panel h3 {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gx-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.export-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* ===== Batch mode ===== */
+.batch-textarea {
+  width: 100%;
+  min-height: 120px;
+  font-family: var(--gx-font-mono, monospace);
+  font-size: 0.875rem;
+  resize: vertical;
+  margin-bottom: 0.5rem;
+}
+
+.batch-count {
+  font-size: 0.75rem;
+  color: var(--gx-text-muted);
+  margin-bottom: 1rem;
+}
+
+.batch-drop {
+  border: 2px dashed var(--gx-border);
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  cursor: pointer;
+  color: var(--gx-text-muted);
+  font-size: 0.875rem;
+  transition: border-color var(--gx-transition), background var(--gx-transition);
+  margin-bottom: 1rem;
+}
+
+.batch-drop:hover,
+.batch-drop.dragover {
+  border-color: var(--gx-accent);
+  background: var(--gx-surface-hover);
+}
+
+.batch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.batch-card {
+  background: var(--gx-surface);
+  border: 1px solid var(--gx-border);
+  border-radius: 8px;
+  padding: 0.5rem;
+  text-align: center;
+}
+
+.batch-card-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+  margin-bottom: 0.25rem;
+}
+
+.batch-card-label {
+  font-size: 0.65rem;
+  color: var(--gx-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.batch-card.error {
+  border-color: var(--gx-danger, #ef4444);
+}
+
+.batch-card-error-content {
+  color: var(--gx-danger, #ef4444);
+  font-size: 0.75rem;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* ===== PDF Settings ===== */
+.pdf-settings {
+  border: 1px solid var(--gx-border);
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.pdf-settings-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: transparent;
+  border: none;
+  width: 100%;
+  color: var(--gx-text);
+  border-radius: 8px;
+  transition: background var(--gx-transition);
+}
+
+.pdf-settings-toggle:hover {
+  background: var(--gx-surface-hover);
+}
+
+.pdf-settings-body {
+  display: none;
+  padding: 1rem;
+  border-top: 1px solid var(--gx-border);
+  gap: 0.75rem;
+  flex-direction: column;
+}
+
+.pdf-settings-body.open {
+  display: flex;
+}
+
+.pdf-settings-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.75rem;
+}
+
+.pdf-settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.pdf-settings-field label {
+  font-size: 0.75rem;
+  color: var(--gx-text-muted);
+  font-weight: 500;
+}
+
+/* ===== Format-specific options ===== */
+.format-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.format-options > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.format-options label {
+  font-size: 0.75rem;
+  color: var(--gx-text-muted);
+  font-weight: 500;
+}
+
+/* ===== About page ===== */
+.about-page {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.about-page section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.about-page h2 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--gx-text);
+}
+
+.about-page h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gx-text);
+}
+
+.about-role {
+  color: var(--gx-text-muted);
+  font-size: 0.875rem;
+}
+
+.about-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.privacy-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: var(--gx-surface);
+  border: 1px solid var(--gx-border);
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: 0.875rem;
+}
+
+.privacy-note svg {
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--gx-accent);
+  margin-top: 0.1rem;
+}
