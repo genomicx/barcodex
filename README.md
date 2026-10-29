@@ -4,6 +4,8 @@
 
 Barcodex generates Data Matrix, QR codes, Code 128, Code 39, EAN-13, and GS1-128 barcodes entirely in your browser. Single or batch mode, with print-ready PDF label export and ZIP archives for batch output. Your sample IDs, URLs, and labels stay private — no data leaves your machine.
 
+**Live app:** [barcodex.genomicx.org](https://barcodex.genomicx.org)
+
 ## Features
 
 - Six barcode formats: Data Matrix, QR Code, Code 128, Code 39, EAN-13, GS1-128
